@@ -20,7 +20,7 @@ from chromadb.config import Settings, DEFAULT_TENANT, DEFAULT_DATABASE
 # ─────────────────────────────────────────────────────────────────────────────
 # 3) Configuration & Global Setup
 # ─────────────────────────────────────────────────────────────────────────────
-COHERE_API_KEY = st.secrets["COHERE_API_KEY"]  # store your key in Streamlit secrets
+COHERE_API_KEY = "B0n3BcGthprXNg5s4z6BmHdsD2hnH1iLcb5eeWnp"  # store your key in Streamlit secrets
 EMBED_MODEL    = "embed-v4.0"
 GEN_MODEL      = "command-r-plus-08-2024"
 CHUNK_SIZE     = 500
