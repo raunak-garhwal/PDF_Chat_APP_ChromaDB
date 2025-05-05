@@ -13,7 +13,6 @@ sys.modules["sqlite3"] = _sqlite3
 import streamlit as st
 st.set_page_config(page_title="PDF Chatbot", layout="wide")  # must be first Streamlit command
 
-from streamlit_lottie import st_lottie, st_lottie_spinner
 import fitz                         # PyMuPDF
 import cohere
 import chromadb
@@ -27,7 +26,6 @@ EMBED_MODEL    = "embed-v4.0"
 GEN_MODEL      = "command-r-plus-08-2024"
 CHUNK_SIZE     = 500
 
-# In‑memory Chroma client (no on‑disk SQLite)
 chroma_client = chromadb.EphemeralClient(
     settings=Settings(),
     tenant=DEFAULT_TENANT,
@@ -35,7 +33,7 @@ chroma_client = chromadb.EphemeralClient(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3) Utility functions (PDF→chunks→embeddings→QA)
+# 3) Utility functions
 # ─────────────────────────────────────────────────────────────────────────────
 def extract_text_from_pdf(pdf_file):
     doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
@@ -70,32 +68,30 @@ def generate_answer(co, prompt):
     return resp.generations[0].text.strip()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4) Page‑wide CSS for polish (hide menu, footer, add padding)
+# 4) Page Style (optional)
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
-        .css-1d391kg {padding: 2rem;}  /* add padding around main content */
+        .css-1d391kg {padding: 2rem;}
     </style>
     """,
     unsafe_allow_html=True
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5) Streamlit UI
+# 5) UI Layout
 # ─────────────────────────────────────────────────────────────────────────────
 st.title("📄 PDF Chatbot (ChromaDB + Cohere)")
 
-# Sidebar with instructions & metrics
 with st.sidebar:
     st.header("How to use")
-    st.write("1. Upload a PDF\n2. Enter your question\n3. Get your answer")
+    st.write("1. Upload a PDF\n2. Ask your question\n3. Get your answer")
     st.metric("Chunk size", CHUNK_SIZE)
     st.metric("Embed model", EMBED_MODEL)
 
-# Two‑column layout: upload on left, query on right
 col1, col2 = st.columns([1, 2], gap="large")
 with col1:
     uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
@@ -103,38 +99,32 @@ with col2:
     user_query = st.text_input("Ask a question about your PDF:")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6) Processing & Animations
+# 6) Logic
 # ─────────────────────────────────────────────────────────────────────────────
 if uploaded_file and user_query:
     co_client = cohere.Client(COHERE_API_KEY)
 
-    # 6a) PDF reading & chunking spinner
-    with st_lottie_spinner("https://assets5.lottiefiles.com/packages/lf20_u4yrau.json", key="load_pdf"):
+    with st.spinner("Extracting and chunking PDF..."):
         text   = extract_text_from_pdf(uploaded_file)
         chunks = chunk_text(text)
 
-    # 6b) Embedding with progress bar
     progress = st.progress(0, text="Embedding chunks…")
-    embs    = []
+    embs = []
     batch_size = 50
     for i in range(0, len(chunks), batch_size):
-        batch = chunks[i : i + batch_size]
-        embs.extend(co_client.embed(texts=batch, model=EMBED_MODEL).embeddings)
-        progress.progress(min((i + batch_size) / len(chunks), 1.0))
+        embs.extend(co_client.embed(texts=chunks[i: i+batch_size], model=EMBED_MODEL).embeddings)
+        progress.progress(min((i+batch_size)/len(chunks), 1.0))
     progress.empty()
 
-    # 6c) Create/replace collection in-memory
-    collection = create_vector_store(chunks, embs)
+    with st.spinner("Storing in vector DB..."):
+        collection = create_vector_store(chunks, embs)
 
-    # 6d) Query & answer spinner
-    with st_lottie_spinner("https://assets3.lottiefiles.com/packages/lf20_jtbfg2nb.json", key="gen_ans"):
+    with st.spinner("Generating answer..."):
         q_emb   = co_client.embed(texts=[user_query], model=EMBED_MODEL).embeddings[0]
         top_ctx = get_top_chunks(collection, q_emb)
         prompt  = build_prompt(top_ctx, user_query)
         answer  = generate_answer(co_client, prompt)
 
-    # 6e) Celebration & result
-    st.balloons()
     st.markdown("### 💬 Answer")
     st.write(answer)
 
