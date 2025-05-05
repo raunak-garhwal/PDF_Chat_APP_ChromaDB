@@ -1,3 +1,8 @@
+import pysqlite3
+import sys
+# Override the built-in sqlite3 module with pysqlite3
+sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+
 import streamlit as st
 import fitz  # PyMuPDF
 import cohere

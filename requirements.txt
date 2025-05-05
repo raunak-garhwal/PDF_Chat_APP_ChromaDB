@@ -1,5 +1,6 @@
 streamlit
 PyMuPDF
-chromadb
 cohere
+chromadb
+pysqlite3-binary
 protobuf==4.23.3
