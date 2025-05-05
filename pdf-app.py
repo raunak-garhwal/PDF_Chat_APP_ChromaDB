@@ -13,7 +13,12 @@ CHUNK_SIZE = 500
 PERSIST_DIR = "./chroma_store"
 
 # ========== INIT ==========
-chroma_client = chromadb.Client(Settings(chroma_api_impl="chromadb.api.local.LocalAPI", persist_directory=None))
+chroma_client = chromadb.Client(Settings(
+    chroma_api_impl="chromadb.api.local.LocalAPI",
+    allow_reset=True,
+    anonymized_telemetry=False,  # optional
+    persist_directory=None       # disables sqlite-based persistence
+))
 co = cohere.Client(COHERE_API_KEY)
 
 # ========== FUNCTIONS ==========
