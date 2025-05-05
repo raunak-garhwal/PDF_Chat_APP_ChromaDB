@@ -6,7 +6,7 @@ from chromadb.config import Settings
 
 # ========== CONFIG ==========
 PDF_PATH = "Demo.pdf"
-COHERE_API_KEY = "your-real-api-key"
+COHERE_API_KEY = "B0n3BcGthprXNg5s4z6BmHdsD2hnH1iLcb5eeWnp"
 EMBED_MODEL = "embed-v4.0"
 GEN_MODEL = "command-r-plus-08-2024"
 CHUNK_SIZE = 500
