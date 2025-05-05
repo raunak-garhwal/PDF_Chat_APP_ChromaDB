@@ -2,3 +2,4 @@ streamlit
 PyMuPDF
 chromadb
 cohere
+protobuf==4.23.3
