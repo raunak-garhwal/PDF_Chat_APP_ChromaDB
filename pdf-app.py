@@ -1,5 +1,3 @@
-# app.py
-
 # ─────────────────────────────────────────────────────────────────────────────
 # 0) Monkey‑patch sqlite3 BEFORE importing chromadb
 # ─────────────────────────────────────────────────────────────────────────────
@@ -116,37 +114,54 @@ with col2:
     user_query = st.text_input("What would you like to know?")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6) Core Logic (unchanged) with improved UI display
+# 6) Process PDF only once per file upload
+# ─────────────────────────────────────────────────────────────────────────────
+if uploaded_file:
+    if "last_filename" not in st.session_state or uploaded_file.name != st.session_state.last_filename:
+        st.session_state.clear()
+        st.session_state.last_filename = uploaded_file.name
+
+    if "chunks" not in st.session_state:
+        with st.status("📄 Extracting and chunking PDF...", expanded=True):
+            text = extract_text_from_pdf(uploaded_file)
+            chunks = chunk_text(text)
+            st.session_state.text = text
+            st.session_state.chunks = chunks
+            st.write(f"✅ Extracted text and created {len(chunks)} chunks.")
+
+    if "embs" not in st.session_state:
+        st.markdown("### 📊 Embedding Chunks")
+        embed_col1, embed_col2 = st.columns([6, 1])
+        with embed_col1:
+            st.info("Embedding PDF chunks, please wait…")
+        with embed_col2:
+            progress = st.progress(0)
+
+        co_client = cohere.Client(COHERE_API_KEY)
+        chunks = st.session_state.chunks
+        embs = []
+        batch_size = 50
+        for i in range(0, len(chunks), batch_size):
+            embs.extend(co_client.embed(texts=chunks[i: i+batch_size], model=EMBED_MODEL).embeddings)
+            progress.progress(min((i + batch_size) / len(chunks), 1.0))
+        progress.empty()
+        st.session_state.embs = embs
+
+    if "collection" not in st.session_state:
+        with st.status("💾 Storing chunks in vector DB...", expanded=True):
+            collection = create_vector_store(st.session_state.chunks, st.session_state.embs)
+            st.session_state.collection = collection
+            st.write("✅ Vector store created and populated.")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7) Question Handling
 # ─────────────────────────────────────────────────────────────────────────────
 if uploaded_file and user_query:
     co_client = cohere.Client(COHERE_API_KEY)
 
-    with st.status("📄 Extracting and chunking PDF...", expanded=True):
-        text   = extract_text_from_pdf(uploaded_file)
-        chunks = chunk_text(text)
-        st.write(f"✅ Extracted text and created {len(chunks)} chunks.")
-
-    st.markdown("### 📊 Embedding Chunks")
-    embed_col1, embed_col2 = st.columns([6, 1])
-    with embed_col1:
-        st.info("Embedding PDF chunks, please wait…")
-    with embed_col2:
-        progress = st.progress(0)
-
-    embs = []
-    batch_size = 50
-    for i in range(0, len(chunks), batch_size):
-        embs.extend(co_client.embed(texts=chunks[i: i+batch_size], model=EMBED_MODEL).embeddings)
-        progress.progress(min((i + batch_size) / len(chunks), 1.0))
-    progress.empty()
-
-    with st.status("💾 Storing chunks in vector DB...", expanded=True):
-        collection = create_vector_store(chunks, embs)
-        st.write("✅ Vector store created and populated.")
-
     with st.status("💡 Generating answer...", expanded=True):
         q_emb   = co_client.embed(texts=[user_query], model=EMBED_MODEL).embeddings[0]
-        top_ctx = get_top_chunks(collection, q_emb)
+        top_ctx = get_top_chunks(st.session_state.collection, q_emb)
         prompt  = build_prompt(top_ctx, user_query)
         answer  = generate_answer(co_client, prompt)
         st.write("✅ Answer generated!")
