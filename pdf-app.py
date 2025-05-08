@@ -86,7 +86,7 @@ st.markdown(
             font-size: 1.2rem;
         }
         .sidebar-metric {
-            font-size: 0.85rem !important;
+            font-size: 1rem !important;
             text-align: center !important;
         }
         .stMarkdown h3 {
@@ -107,8 +107,8 @@ with st.sidebar:
     st.markdown("1. Upload a **PDF file**\n2. Ask a **question**\n3. View the **answer** below.")
     st.divider()
     st.markdown("<div class='sidebar-metric'><b>Chunk Size:</b><br>" + str(CHUNK_SIZE) + "</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sidebar-metric'><b>Embed Model:</b><br>" + EMBED_MODEL + "</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sidebar-metric'><b>Gen Model:</b><br>" + GEN_MODEL + "</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-metric'><b>Embedding Model:</b><br>" + EMBED_MODEL + "</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-metric'><b>Generative Model:</b><br>" + GEN_MODEL + "</div>", unsafe_allow_html=True)
 
 st.markdown("### 📥 Upload PDF & Ask Your Question")
 col1, col2 = st.columns(2)
