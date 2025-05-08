@@ -82,8 +82,17 @@ st.markdown(
             height: 3rem;
             font-size: 1rem;
         }
-        .stFileUploader label {
-            font-size: 1rem;
+        .stTextInput > label {
+            font-size: 1.3rem !important;
+            font-weight: 600;
+        }
+        .stTextInput > div > div > input {
+            height: 3rem; !important;
+            font-size: 1.2rem;
+        }
+        .stFileUploader > label {
+            font-size: 1.3rem !important;
+            font-weight: 600;
         }
         .sidebar-metric {
             font-size: 1rem !important;
