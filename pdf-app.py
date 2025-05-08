@@ -80,10 +80,14 @@ st.markdown(
         }
         .stTextInput > div > div > input {
             height: 3rem;
-            font-size: 1.05rem;
+            font-size: 1.2rem;
         }
-        .stFileUploader > div {
-            padding: 1rem 0;
+        .stFileUploader label {
+            font-size: 1.2rem;
+        }
+        .sidebar-metric {
+            font-size: 0.85rem !important;
+            text-align: center !important;
         }
         .stMarkdown h3 {
             margin-top: 2rem;
@@ -102,19 +106,19 @@ with st.sidebar:
     st.header("🛠️ How to Use")
     st.markdown("1. Upload a **PDF file**\n2. Ask a **question**\n3. View the **answer** below.")
     st.divider()
-    st.metric("Chunk Size", CHUNK_SIZE)
-    st.metric("Embed Model", EMBED_MODEL)
-    st.metric("Gen Model", GEN_MODEL)
+    st.markdown("<div class='sidebar-metric'><b>Chunk Size:</b><br>" + str(CHUNK_SIZE) + "</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-metric'><b>Embed Model:</b><br>" + EMBED_MODEL + "</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-metric'><b>Gen Model:</b><br>" + GEN_MODEL + "</div>", unsafe_allow_html=True)
 
 st.markdown("### 📥 Upload PDF & Ask Your Question")
 col1, col2 = st.columns(2)
 with col1:
-    uploaded_file = st.file_uploader("Choose a PDF", type="pdf")
+    uploaded_file = st.file_uploader("📄 Choose a PDF", type="pdf")
 with col2:
-    user_query = st.text_input("What would you like to know?")
+    user_query = st.text_input("🔎 What would you like to know?")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6) Process PDF only once per file upload
+# 6) Logic with session state caching
 # ─────────────────────────────────────────────────────────────────────────────
 if uploaded_file:
     if "last_filename" not in st.session_state or uploaded_file.name != st.session_state.last_filename:
@@ -122,14 +126,13 @@ if uploaded_file:
         st.session_state.last_filename = uploaded_file.name
 
     if "chunks" not in st.session_state:
+        co_client = cohere.Client(COHERE_API_KEY)
         with st.status("📄 Extracting and chunking PDF...", expanded=True):
             text = extract_text_from_pdf(uploaded_file)
             chunks = chunk_text(text)
-            st.session_state.text = text
             st.session_state.chunks = chunks
             st.write(f"✅ Extracted text and created {len(chunks)} chunks.")
 
-    if "embs" not in st.session_state:
         st.markdown("### 📊 Embedding Chunks")
         embed_col1, embed_col2 = st.columns([6, 1])
         with embed_col1:
@@ -137,31 +140,28 @@ if uploaded_file:
         with embed_col2:
             progress = st.progress(0)
 
-        co_client = cohere.Client(COHERE_API_KEY)
-        chunks = st.session_state.chunks
         embs = []
         batch_size = 50
         for i in range(0, len(chunks), batch_size):
-            embs.extend(co_client.embed(texts=chunks[i: i+batch_size], model=EMBED_MODEL).embeddings)
+            embs.extend(co_client.embed(texts=chunks[i:i+batch_size], model=EMBED_MODEL).embeddings)
             progress.progress(min((i + batch_size) / len(chunks), 1.0))
         progress.empty()
         st.session_state.embs = embs
 
-    if "collection" not in st.session_state:
         with st.status("💾 Storing chunks in vector DB...", expanded=True):
-            collection = create_vector_store(st.session_state.chunks, st.session_state.embs)
+            collection = create_vector_store(chunks, embs)
             st.session_state.collection = collection
             st.write("✅ Vector store created and populated.")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 7) Question Handling
-# ─────────────────────────────────────────────────────────────────────────────
 if uploaded_file and user_query:
     co_client = cohere.Client(COHERE_API_KEY)
+    chunks = st.session_state.chunks
+    embs = st.session_state.embs
+    collection = st.session_state.collection
 
     with st.status("💡 Generating answer...", expanded=True):
         q_emb   = co_client.embed(texts=[user_query], model=EMBED_MODEL).embeddings[0]
-        top_ctx = get_top_chunks(st.session_state.collection, q_emb)
+        top_ctx = get_top_chunks(collection, q_emb)
         prompt  = build_prompt(top_ctx, user_query)
         answer  = generate_answer(co_client, prompt)
         st.write("✅ Answer generated!")
