@@ -68,22 +68,21 @@ def generate_answer(co, prompt):
     return resp.generations[0].text.strip()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4) Page Style (clean spacing + hide footer/menu)
+# 4) Page Style
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
+        #MainMenu, footer {visibility: hidden;}
         .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            padding-left: 3rem;
-            padding-right: 3rem;
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+            padding-left: 3rem !important;
+            padding-right: 3rem !important;
         }
         .stTextInput > div > div > input {
             height: 3rem;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
         .stFileUploader > div {
             padding: 1rem 0;
@@ -101,7 +100,6 @@ st.markdown(
 # ─────────────────────────────────────────────────────────────────────────────
 st.title("📄 PDF Chatbot with Cohere + ChromaDB")
 
-# Instructions and metadata
 with st.sidebar:
     st.header("🛠️ How to Use")
     st.markdown("1. Upload a **PDF file**\n2. Ask a **question**\n3. View the **answer** below.")
@@ -110,45 +108,52 @@ with st.sidebar:
     st.metric("Embed Model", EMBED_MODEL)
     st.metric("Gen Model", GEN_MODEL)
 
-# Upload + Question Input - Side by side and centered
-st.markdown("### 📥 Upload and Ask")
-input_col1, input_col2 = st.columns([1, 2], gap="large")
-with input_col1:
-    uploaded_file = st.file_uploader("Upload your PDF here:", type="pdf")
-with input_col2:
-    user_query = st.text_input("Ask a question about the PDF:")
+st.markdown("### 📥 Upload PDF & Ask Your Question")
+col1, col2 = st.columns(2)
+with col1:
+    uploaded_file = st.file_uploader("Choose a PDF", type="pdf")
+with col2:
+    user_query = st.text_input("What would you like to know?")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6) Logic
+# 6) Core Logic (unchanged) with improved UI display
 # ─────────────────────────────────────────────────────────────────────────────
 if uploaded_file and user_query:
     co_client = cohere.Client(COHERE_API_KEY)
 
-    with st.spinner("🔍 Extracting and chunking your PDF..."):
+    with st.status("📄 Extracting and chunking PDF...", expanded=True):
         text   = extract_text_from_pdf(uploaded_file)
         chunks = chunk_text(text)
+        st.write(f"✅ Extracted text and created {len(chunks)} chunks.")
 
-    progress = st.progress(0, text="📊 Embedding PDF chunks...")
+    st.markdown("### 📊 Embedding Chunks")
+    embed_col1, embed_col2 = st.columns([6, 1])
+    with embed_col1:
+        st.info("Embedding PDF chunks, please wait…")
+    with embed_col2:
+        progress = st.progress(0)
+
     embs = []
     batch_size = 50
     for i in range(0, len(chunks), batch_size):
         embs.extend(co_client.embed(texts=chunks[i: i+batch_size], model=EMBED_MODEL).embeddings)
-        progress.progress(min((i+batch_size)/len(chunks), 1.0))
+        progress.progress(min((i + batch_size) / len(chunks), 1.0))
     progress.empty()
 
-    with st.spinner("🧠 Creating vector store..."):
+    with st.status("💾 Storing chunks in vector DB...", expanded=True):
         collection = create_vector_store(chunks, embs)
+        st.write("✅ Vector store created and populated.")
 
-    with st.spinner("💡 Generating your answer..."):
+    with st.status("💡 Generating answer...", expanded=True):
         q_emb   = co_client.embed(texts=[user_query], model=EMBED_MODEL).embeddings[0]
         top_ctx = get_top_chunks(collection, q_emb)
         prompt  = build_prompt(top_ctx, user_query)
         answer  = generate_answer(co_client, prompt)
+        st.write("✅ Answer generated!")
 
-    # Final Output Section
     st.markdown("### 💬 Answer")
     st.success(answer)
 
-    with st.expander("📚 View Retrieved Context Chunks"):
+    with st.expander("📚 Context Chunks Used"):
         for i, c in enumerate(top_ctx, 1):
             st.markdown(f"**Chunk {i}:**\n{c}")
