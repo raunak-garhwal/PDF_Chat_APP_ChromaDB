@@ -68,14 +68,29 @@ def generate_answer(co, prompt):
     return resp.generations[0].text.strip()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4) Page Style (optional)
+# 4) Page Style (clean spacing + hide footer/menu)
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
-        .css-1d391kg {padding: 2rem;}
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            padding-left: 3rem;
+            padding-right: 3rem;
+        }
+        .stTextInput > div > div > input {
+            height: 3rem;
+            font-size: 1.1rem;
+        }
+        .stFileUploader > div {
+            padding: 1rem 0;
+        }
+        .stMarkdown h3 {
+            margin-top: 2rem;
+        }
     </style>
     """,
     unsafe_allow_html=True
@@ -84,19 +99,24 @@ st.markdown(
 # ─────────────────────────────────────────────────────────────────────────────
 # 5) UI Layout
 # ─────────────────────────────────────────────────────────────────────────────
-st.title("📄 PDF Chatbot (ChromaDB + Cohere)")
+st.title("📄 PDF Chatbot with Cohere + ChromaDB")
 
+# Instructions and metadata
 with st.sidebar:
-    st.header("How to use")
-    st.write("1. Upload a PDF\n2. Ask your question\n3. Get your answer")
-    st.metric("Chunk size", CHUNK_SIZE)
-    st.metric("Embed model", EMBED_MODEL)
+    st.header("🛠️ How to Use")
+    st.markdown("1. Upload a **PDF file**\n2. Ask a **question**\n3. View the **answer** below.")
+    st.divider()
+    st.metric("Chunk Size", CHUNK_SIZE)
+    st.metric("Embed Model", EMBED_MODEL)
+    st.metric("Gen Model", GEN_MODEL)
 
-col1, col2 = st.columns([1, 2], gap="large")
-with col1:
-    uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
-with col2:
-    user_query = st.text_input("Ask a question about your PDF:")
+# Upload + Question Input - Side by side and centered
+st.markdown("### 📥 Upload and Ask")
+input_col1, input_col2 = st.columns([1, 2], gap="large")
+with input_col1:
+    uploaded_file = st.file_uploader("Upload your PDF here:", type="pdf")
+with input_col2:
+    user_query = st.text_input("Ask a question about the PDF:")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 6) Logic
@@ -104,11 +124,11 @@ with col2:
 if uploaded_file and user_query:
     co_client = cohere.Client(COHERE_API_KEY)
 
-    with st.spinner("Extracting and chunking PDF..."):
+    with st.spinner("🔍 Extracting and chunking your PDF..."):
         text   = extract_text_from_pdf(uploaded_file)
         chunks = chunk_text(text)
 
-    progress = st.progress(0, text="Embedding chunks…")
+    progress = st.progress(0, text="📊 Embedding PDF chunks...")
     embs = []
     batch_size = 50
     for i in range(0, len(chunks), batch_size):
@@ -116,18 +136,19 @@ if uploaded_file and user_query:
         progress.progress(min((i+batch_size)/len(chunks), 1.0))
     progress.empty()
 
-    with st.spinner("Storing in vector DB..."):
+    with st.spinner("🧠 Creating vector store..."):
         collection = create_vector_store(chunks, embs)
 
-    with st.spinner("Generating answer..."):
+    with st.spinner("💡 Generating your answer..."):
         q_emb   = co_client.embed(texts=[user_query], model=EMBED_MODEL).embeddings[0]
         top_ctx = get_top_chunks(collection, q_emb)
         prompt  = build_prompt(top_ctx, user_query)
         answer  = generate_answer(co_client, prompt)
 
+    # Final Output Section
     st.markdown("### 💬 Answer")
-    st.write(answer)
+    st.success(answer)
 
-    with st.expander("📚 Context chunks used"):
+    with st.expander("📚 View Retrieved Context Chunks"):
         for i, c in enumerate(top_ctx, 1):
-            st.markdown(f"**Chunk {i}:** {c}")
+            st.markdown(f"**Chunk {i}:**\n{c}")
