@@ -80,17 +80,17 @@ st.markdown(
         }
         .stTextInput > div > div > input {
             height: 3rem;
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
         .stFileUploader label {
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
         .sidebar-metric {
             font-size: 1rem !important;
             text-align: center !important;
         }
         .stMarkdown h3 {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
     </style>
     """,
@@ -106,9 +106,9 @@ with st.sidebar:
     st.header("🛠️ How to Use")
     st.markdown("1. Upload a **PDF file**\n2. Ask a **question**\n3. View the **answer** below.")
     st.divider()
-    st.markdown("<div class='sidebar-metric'><b>Chunk Size:</b><br>" + str(CHUNK_SIZE) + "</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sidebar-metric'><b>Embedding Model:</b><br>" + EMBED_MODEL + "</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sidebar-metric'><b>Generative Model:</b><br>" + GEN_MODEL + "</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-metric'><b>Chunk Size:</b><br>" + str(CHUNK_SIZE) + "</div><br>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-metric'><b>Embedding Model:</b><br>" + EMBED_MODEL + "</div><br>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-metric'><b>Generative Model:</b><br>" + GEN_MODEL + "</div><br>", unsafe_allow_html=True)
 
 st.markdown("### 📥 Upload PDF & Ask Your Question")
 col1, col2 = st.columns(2)
