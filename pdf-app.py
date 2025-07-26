@@ -193,24 +193,37 @@ st.markdown(
         
         /* Input styling */
         .stTextInput > div > div > input {
-            height: 3.5rem !important;
+            height: 4rem !important;
             font-size: 1.1rem !important;
-            border-radius: 12px !important;
+            border-radius: 15px !important;
             border: 2px solid #e2e8f0 !important;
-            padding: 0 1rem !important;
+            padding: 1rem 1.5rem !important;
             transition: all 0.3s ease !important;
+            background: white !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
         }
         
         .stTextInput > div > div > input:focus {
             border-color: #667eea !important;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 4px 20px rgba(0,0,0,0.1) !important;
+            outline: none !important;
+        }
+        
+        .stTextInput > div > div > input::placeholder {
+            color: #a0aec0 !important;
+            font-style: italic !important;
         }
         
         .stTextInput > label {
-            font-size: 1.1rem !important;
+            font-size: 1.2rem !important;
             font-weight: 600 !important;
             color: #2d3748 !important;
-            margin-bottom: 0.5rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+        
+        /* Text input container */
+        .stTextInput {
+            margin-bottom: 1.5rem !important;
         }
         
         /* Button styling */
@@ -303,25 +316,131 @@ st.markdown(
         }
         
         /* Chat-like styling for Q&A */
+        .conversation-container {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
         .question-bubble {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 20px 20px 5px 20px;
-            margin: 1rem 0 0.5rem auto;
-            max-width: 80%;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            padding: 1.25rem 2rem;
+            border-radius: 25px 25px 8px 25px;
+            margin: 1rem 0 1.5rem auto;
+            max-width: 85%;
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+        
+        .question-bubble strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .answer-bubble {
             background: white;
             color: #2d3748;
-            padding: 1rem 1.5rem;
-            border-radius: 20px 20px 20px 5px;
-            margin: 0.5rem auto 1rem 0;
-            max-width: 85%;
+            padding: 1.5rem 2rem;
+            border-radius: 25px 25px 25px 8px;
+            margin: 1.5rem auto 2rem 0;
+            max-width: 90%;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e2e8f0;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            position: relative;
+        }
+        
+        .answer-bubble::before {
+            content: '';
+            position: absolute;
+            left: -1px;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px 0 0 2px;
+        }
+        
+        .answer-bubble strong {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .typing-indicator {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 25px 25px 25px 8px;
+            margin: 1.5rem auto 2rem 0;
+            max-width: 200px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Context sources styling */
+        .context-source {
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .context-source:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .context-source-title {
+            font-weight: 600;
+            color: #553c9a;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+        
+        .context-source-text {
+            color: #4a5568;
+            line-height: 1.6;
+            font-size: 0.95rem;
         }
         
         /* File info styling */
@@ -455,13 +574,14 @@ col1, col2 = st.columns([1, 1], gap="large")
 with col1:
     st.markdown("""
     <div class="custom-card">
-        <h3 style="margin-top: 0; color: #2d3748;">📄 Document Upload</h3>
+        <h3 style="margin-top: 0; color: #2d3748; margin-bottom: 1.5rem;">📄 Document Upload</h3>
     """, unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader(
         "Choose your PDF file",
         type="pdf",
-        help="Select a PDF document to analyze"
+        help="Select a PDF document to analyze",
+        key="pdf_uploader"
     )
     
     if uploaded_file:
@@ -481,13 +601,14 @@ with col1:
 with col2:
     st.markdown("""
     <div class="custom-card">
-        <h3 style="margin-top: 0; color: #2d3748;">❓ Ask Your Question</h3>
+        <h3 style="margin-top: 0; color: #2d3748; margin-bottom: 1.5rem;">❓ Ask Your Question</h3>
     """, unsafe_allow_html=True)
     
     user_query = st.text_input(
         "What would you like to know?",
         placeholder="e.g., What is the main topic of this document?",
-        help="Ask any question about your uploaded PDF"
+        help="Ask any question about your uploaded PDF",
+        key="question_input"
     )
     
     st.markdown("</div>", unsafe_allow_html=True)
@@ -576,44 +697,65 @@ if uploaded_file and user_query and "collection" in st.session_state:
         st.markdown("---")
         st.markdown("### 💭 Conversation")
         
+        # Conversation container
+        st.markdown('<div class="conversation-container">', unsafe_allow_html=True)
+        
         # Display question
         st.markdown(f"""
         <div class="question-bubble">
-            <strong>You asked:</strong><br>
+            <strong>You asked:</strong>
             {user_query}
         </div>
         """, unsafe_allow_html=True)
         
+        # Show typing indicator while processing
+        typing_placeholder = st.empty()
+        typing_placeholder.markdown("""
+        <div class="typing-indicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span style="margin-left: 0.5rem; color: #667eea; font-size: 0.9rem;">AI is thinking...</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
         # Process and display answer
-        with st.spinner("🤔 Thinking..."):
-            q_emb = co_client.embed(texts=[user_query], model=EMBED_MODEL).embeddings[0]
-            top_ctx = get_top_chunks(st.session_state.collection, q_emb)
+        q_emb = co_client.embed(texts=[user_query], model=EMBED_MODEL).embeddings[0]
+        top_ctx = get_top_chunks(st.session_state.collection, q_emb)
+        
+        if not top_ctx:
+            typing_placeholder.empty()
+            st.warning("⚠️ No relevant content found. Please try rephrasing your question.")
+        else:
+            prompt = build_prompt(top_ctx, user_query)
+            answer = generate_answer(co_client, prompt)
             
-            if not top_ctx:
-                st.warning("⚠️ No relevant content found. Please try rephrasing your question.")
-            else:
-                prompt = build_prompt(top_ctx, user_query)
-                answer = generate_answer(co_client, prompt)
-                time.sleep(1)  # Small delay for better UX
-                
-                # Display answer in chat bubble
-                st.markdown(f"""
-                <div class="answer-bubble">
-                    <strong>🤖 AI Assistant:</strong><br>
-                    {answer}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Context sources in an expander
-                with st.expander("📚 View Source Context", expanded=False):
-                    st.markdown("**Relevant passages from your document:**")
-                    for i, chunk in enumerate(top_ctx, 1):
-                        st.markdown(f"""
-                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 0.5rem 0; border-left: 4px solid #667eea;">
-                            <strong>Source {i}:</strong><br>
-                            {chunk[:300]}{'...' if len(chunk) > 300 else ''}
-                        </div>
-                        """, unsafe_allow_html=True)
+            # Remove typing indicator and show answer
+            typing_placeholder.empty()
+            
+            # Display answer in chat bubble
+            st.markdown(f"""
+            <div class="answer-bubble">
+                <strong>🤖 AI Assistant:</strong>
+                {answer}
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)  # Close conversation container
+        
+        # Context sources in an expander (only if we have context)
+        if top_ctx:
+            with st.expander("📚 View Source Context", expanded=False):
+                st.markdown("**Relevant passages from your document:**")
+                for i, chunk in enumerate(top_ctx, 1):
+                    st.markdown(f"""
+                    <div class="context-source">
+                        <div class="context-source-title">Source Passage {i}</div>
+                        <div class="context-source-text">{chunk[:400]}{'...' if len(chunk) > 400 else ''}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                         
     except Exception as e:
         st.error(f"⚠️ An error occurred while processing your question: {str(e)}")
