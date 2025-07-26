@@ -78,28 +78,52 @@ st.markdown(
             padding-left: 3rem !important;
             padding-right: 3rem !important;
         }
+        
+        /* Text input styling with proper padding */
         .stTextInput > div > div > input {
-            height: 3rem;
-            font-size: 1rem;
+            height: 3rem !important;
+            font-size: 1.2rem !important;
+            padding: 0.75rem 1rem !important;
+            border-radius: 0.5rem !important;
+            border: 2px solid #e0e0e0 !important;
+            transition: border-color 0.2s ease !important;
         }
+        
+        .stTextInput > div > div > input:focus {
+            border-color: #ff6b6b !important;
+            box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2) !important;
+            outline: none !important;
+        }
+        
         .stTextInput > label {
             font-size: 1.3rem !important;
-            font-weight: 600;
+            font-weight: 600 !important;
+            margin-bottom: 0.5rem !important;
         }
-        .stTextInput > div > div > input {
-            height: 3rem; !important;
-            font-size: 1.2rem;
-        }
+        
         .stFileUploader > label {
             font-size: 1.3rem !important;
-            font-weight: 600;
+            font-weight: 600 !important;
         }
+        
         .sidebar-metric {
             font-size: 1rem !important;
             text-align: center !important;
         }
+        
         .stMarkdown h3 {
             margin-top: 1.5rem;
+        }
+        
+        /* Additional improvements for better spacing */
+        .stTextInput {
+            margin-bottom: 1rem !important;
+        }
+        
+        /* File uploader styling */
+        .stFileUploader > div {
+            padding: 1rem !important;
+            border-radius: 0.5rem !important;
         }
     </style>
     """,
